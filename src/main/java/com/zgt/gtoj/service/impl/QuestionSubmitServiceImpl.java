@@ -70,7 +70,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         questionSubmit.setUserId(userId);
         questionSubmit.setQuestionId(questionId);
         questionSubmit.setCode(questionSubmitAddRequest.getCode());
-        questionSubmit.setLanguage(questionSubmit.getLanguage());
+        questionSubmit.setLanguage(questionSubmitAddRequest.getLanguage());
         //提交的初始状态
         questionSubmit.setStatus(QuestionSubmitStatusEnum.WAITING.getValue());
         //json空对象
