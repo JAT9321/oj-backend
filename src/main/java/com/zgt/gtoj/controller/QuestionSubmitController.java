@@ -52,7 +52,7 @@ public class QuestionSubmitController {
         if (questionsubmitAddRequest == null || questionsubmitAddRequest.getQuestionId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // 登录才能点赞
+        // 登录才可以做题
         final User loginUser = userService.getLoginUser(request);
         long questionId = questionsubmitAddRequest.getQuestionId();
         Long result = questionSubmitService.doQuestionSubmit(questionsubmitAddRequest, loginUser);

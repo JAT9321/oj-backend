@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zgt.gtoj.common.ErrorCode;
 import com.zgt.gtoj.constant.CommonConstant;
 import com.zgt.gtoj.exception.BusinessException;
+import com.zgt.gtoj.judge.JudgeService;
 import com.zgt.gtoj.model.dto.question.QuestionQueryRequest;
+import com.zgt.gtoj.model.dto.questionsubmit.JudgeInfo;
 import com.zgt.gtoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.zgt.gtoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.zgt.gtoj.model.entity.Question;
@@ -26,6 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -33,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +52,10 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     private QuestionService questionService;
     @Resource
     private UserService userService;
+
+    @Resource
+    @Lazy // 循环依赖了，用lazy解决
+    private JudgeService judgeService;
 
     @Override
     public long doQuestionSubmit(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser) {
@@ -79,7 +87,12 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         if (!save) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入异常");
         }
-        return questionSubmit.getId();
+        Long questionSubmitId = questionSubmit.getId();
+        // 异步执行判题服务
+        CompletableFuture.runAsync(() -> {
+            judgeService.doJudge(questionSubmitId);
+        });
+        return questionSubmitId;
     }
 
     /**
