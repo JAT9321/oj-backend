@@ -23,7 +23,7 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
      */
     @Override
     public JudgeInfo doJudge(JudgeContext judgeContext) {
-// 这个judgeInfo是沙盒执行代码真正消耗的内存和时间
+        // 这个judgeInfo是沙盒执行代码真正消耗的内存和时间
         JudgeInfo judgeInfo = judgeContext.getJudgeInfo();
         Long memory = judgeInfo.getMemory();
         Long time = judgeInfo.getTime();
