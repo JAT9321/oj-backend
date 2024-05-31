@@ -12,12 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
 
-/**
- * 主类测试
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
- */
 @SpringBootTest
 class MainApplicationTests {
 
@@ -35,7 +29,13 @@ class MainApplicationTests {
         CodeSandbox codeSandbox = CodeSandboxFactory.newInstance(type);
         codeSandbox = new CodeSandboxProxy(codeSandbox);
         ExecuteCodeRequest executeCodeRequest = ExecuteCodeRequest.builder()
-                .code("hello wrold")
+                .code("class Main {\n" +
+                        "    public static void main(String[] args) {\n" +
+                        "        int a = Integer.valueOf(args[0]);\n" +
+                        "        int b = Integer.valueOf(args[1]);\n" +
+                        "        System.out.println(\"结果：\" + (a + b));\n" +
+                        "    }\n" +
+                        "}")
                 .language("java")
                 .inputList(Arrays.asList("1 2", "3 4"))
                 .build();

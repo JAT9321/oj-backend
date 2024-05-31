@@ -11,6 +11,8 @@ import com.zgt.gtoj.judge.codesandbox.model.ExecuteCodeResponse;
 import com.zgt.gtoj.judge.codesandbox.model.JudgeInfo;
 import org.dom4j.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * 要实现的代码沙箱
  */
@@ -22,23 +24,24 @@ public class RemoteCodeSandbox implements CodeSandbox {
 
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
-// //        System.out.println("远程沙箱");
-//         ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
-//         executeCodeResponse.setOutputList(executeCodeRequest.getInputList());
-//         executeCodeResponse.setMessage("远程执行完成");
-//         JudgeInfo judgeInfo = new JudgeInfo();
-//         judgeInfo.setMemory(10000L);
-//         judgeInfo.setTime(1000L);
-//         judgeInfo.setMessage("ok");
-//         executeCodeResponse.setJudgeInfo(judgeInfo);
-//         return executeCodeResponse;
+        // System.out.println("远程沙箱");
+        // ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
+        // executeCodeResponse.setOutputList(executeCodeRequest.getInputList());
+        // executeCodeResponse.setMessage("远程执行完成");
+        // JudgeInfo judgeInfo = new JudgeInfo();
+        // judgeInfo.setMemory(10000L);
+        // judgeInfo.setTime(1000L);
+        // judgeInfo.setMessage("ok");
+        // executeCodeResponse.setJudgeInfo(judgeInfo);
+        // return executeCodeResponse;
 
         System.out.println("远程代码沙箱");
-        String url = "http://localhost:2375/execCode";
+        // String url = "http://121.37.154.99:2375/execCode";
+        String url = "http://localhost:9999/execCode";
         String execReq = JSONUtil.toJsonStr(executeCodeRequest);
         String response = HttpUtil.createPost(url)
-                .body(execReq)
                 .header(AUTH_REQUEST_HEADER, AUTH_REQUEST_SECRET)
+                .body(execReq)
                 .execute()
                 .body();
 

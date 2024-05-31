@@ -25,8 +25,8 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
     public JudgeInfo doJudge(JudgeContext judgeContext) {
         // 这个judgeInfo是沙盒执行代码真正消耗的内存和时间
         JudgeInfo judgeInfo = judgeContext.getJudgeInfo();
-        Long memory = judgeInfo.getMemory();
-        Long time = judgeInfo.getTime();
+        Long memory = Optional.ofNullable(judgeInfo.getMemory()).orElse(0L);
+        Long time = Optional.ofNullable(judgeInfo.getTime()).orElse(0L);
         List<String> inputList = judgeContext.getInputList();
         List<String> outputList = judgeContext.getOutputList();
         Question question = judgeContext.getQuestion();
@@ -57,7 +57,7 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
         }
 
 
-        //先判断输出结果的数量和输入用例的个数是否相等
+        // 先判断输出结果的数量和输入用例的个数是否相等
         if (outputList.size() != inputList.size()) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.WRONG_ANSWER;
             judgeResponse.setMessage(judgeInfoMessageEnum.getValue());

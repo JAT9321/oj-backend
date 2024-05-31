@@ -11,10 +11,15 @@ import com.zgt.gtoj.constant.UserConstant;
 import com.zgt.gtoj.exception.BusinessException;
 import com.zgt.gtoj.exception.ThrowUtils;
 import com.zgt.gtoj.model.dto.question.*;
+import com.zgt.gtoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.zgt.gtoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.zgt.gtoj.model.entity.Question;
+import com.zgt.gtoj.model.entity.QuestionSubmit;
 import com.zgt.gtoj.model.entity.User;
+import com.zgt.gtoj.model.vo.QuestionSubmitVO;
 import com.zgt.gtoj.model.vo.QuestionVO;
 import com.zgt.gtoj.service.QuestionService;
+import com.zgt.gtoj.service.QuestionSubmitService;
 import com.zgt.gtoj.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -40,6 +45,11 @@ public class QuestionController {
 
     @Resource
     private UserService userService;
+
+
+    @Resource
+    private QuestionSubmitService questionSubmitService;
+
 
     // region 增删改查
 
@@ -125,7 +135,9 @@ public class QuestionController {
         }
         List<JudgeCase> judgeCase = questionUpdateRequest.getJudgeCase();
         if (judgeCase != null) {
+            // String judgeCaseStr = JSONUtil.toJsonStr(judgeCase);
             question.setJudgeCase(JSONUtil.toJsonStr(judgeCase));
+            // question.setJudgeCase(judgeCaseStr.replace("\\n", "\n"));
         }
         JudgeConfig judgeConfig = questionUpdateRequest.getJudgeConfig();
         if (judgeConfig != null) {
@@ -158,7 +170,7 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
 
-        //仅仅让本人或管理员进行查看
+        // 仅仅让本人或管理员进行查看
         User loginUser = userService.getLoginUser(request);
         if (!question.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -286,5 +298,43 @@ public class QuestionController {
         boolean result = questionService.updateById(question);
         return ResultUtils.success(result);
     }
+
+
+    /**
+     * @param questionsubmitAddRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/question_submit/do")
+    public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionsubmitAddRequest,
+                                               HttpServletRequest request) {
+        if (questionsubmitAddRequest == null || questionsubmitAddRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 登录才可以做题
+        final User loginUser = userService.getLoginUser(request);
+        long questionId = questionsubmitAddRequest.getQuestionId();
+        Long result = questionSubmitService.doQuestionSubmit(questionsubmitAddRequest, loginUser);
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 分页获取列表（仅管理员）
+     *
+     * @param questionSubmitQueryRequest
+     * @return
+     */
+    @PostMapping("/question_submit/list/page")
+//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
+                                                                         HttpServletRequest request) {
+        long current = questionSubmitQueryRequest.getCurrent();
+        long size = questionSubmitQueryRequest.getPageSize();
+        Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
+                questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
+        final User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
+    }
+
 
 }
