@@ -1,5 +1,6 @@
 package com.zgt.gtoj.controller;
 
+import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zgt.gtoj.annotation.AuthCheck;
 import com.zgt.gtoj.common.BaseResponse;
@@ -33,19 +34,15 @@ import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户接口
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @Slf4j
 public class UserController {
 
@@ -54,6 +51,7 @@ public class UserController {
 
     @Resource
     private WxOpenConfig wxOpenConfig;
+
 
     // region 登录相关
 
@@ -143,9 +141,15 @@ public class UserController {
      * @param request
      * @return
      */
+    // @GetMapping("/get/login")
+    // public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
+    //     User user = userService.getLoginUser(request);
+    //     return ResultUtils.success(userService.getLoginUserVO(user));
+    // }
+    // 通过header中的token去redis获得，chrome跨域cookie携带不过去
     @GetMapping("/get/login")
-    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
-        User user = userService.getLoginUser(request);
+    public BaseResponse<LoginUserVO> getLoginUser(@RequestHeader(value = "authorization", defaultValue = "None") String token) {
+        User user = userService.getLoginUser(token);
         return ResultUtils.success(userService.getLoginUserVO(user));
     }
 

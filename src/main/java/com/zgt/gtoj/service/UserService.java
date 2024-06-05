@@ -6,6 +6,7 @@ import com.zgt.gtoj.model.dto.user.UserQueryRequest;
 import com.zgt.gtoj.model.entity.User;
 import com.zgt.gtoj.model.vo.LoginUserVO;
 import com.zgt.gtoj.model.vo.UserVO;
+
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
@@ -55,6 +56,8 @@ public interface UserService extends IService<User> {
      * @return
      */
     User getLoginUser(HttpServletRequest request);
+
+    User getLoginUser(String token);
 
     /**
      * 获取当前登录用户（允许未登录）
@@ -119,4 +122,7 @@ public interface UserService extends IService<User> {
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
+    LoginUserVO getLoginUserVOWithToken(User user, String key);
+
+    boolean isAdmin(String token);
 }

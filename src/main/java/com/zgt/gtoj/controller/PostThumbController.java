@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @RestController
-@RequestMapping("/post_thumb")
+@RequestMapping("/api/post_thumb")
 @Slf4j
 public class PostThumbController {
 

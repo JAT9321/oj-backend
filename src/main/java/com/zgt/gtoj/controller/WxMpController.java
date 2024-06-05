@@ -1,6 +1,7 @@
 package com.zgt.gtoj.controller;
 
 import com.zgt.gtoj.wxmp.WxMpConstant;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @from <a href="https://yupi.icu">编程导航知识星球</a>
  **/
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api/wx")
 @Slf4j
 public class WxMpController {
 

@@ -3,6 +3,8 @@ package com.zgt.gtoj.service.impl;
 import static com.zgt.gtoj.constant.UserConstant.USER_LOGIN_STATE;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zgt.gtoj.common.ErrorCode;
@@ -16,15 +18,20 @@ import com.zgt.gtoj.model.vo.LoginUserVO;
 import com.zgt.gtoj.model.vo.UserVO;
 import com.zgt.gtoj.service.UserService;
 import com.zgt.gtoj.utils.SqlUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -42,6 +49,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     public static final String SALT = "yupi";
+
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -107,7 +118,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 3. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        return this.getLoginUserVO(user);
+
+        UUID randomUUID = UUID.randomUUID();
+        String key = "login:" + randomUUID;
+        String value = JSONUtil.toJsonStr(user);
+        redisTemplate.opsForValue().set(key, value, 7, TimeUnit.DAYS);
+        return this.getLoginUserVOWithToken(user, key);
     }
 
     @Override
@@ -163,6 +179,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         return currentUser;
+    }
+
+    @Override
+    public User getLoginUser(String token) {
+        if (StringUtils.isEmpty(token) || "None".equals(token)) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        String userInfo = (String) redisTemplate.opsForValue().get(token);
+        if (StringUtils.isEmpty(userInfo)) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        User user = JSONUtil.toBean(userInfo, User.class);
+        redisTemplate.expire(token, 7, TimeUnit.DAYS);
+        return user;
     }
 
     /**
@@ -269,5 +299,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
+    }
+
+    @Override
+    public LoginUserVO getLoginUserVOWithToken(User user, String token) {
+        if (user == null) {
+            return null;
+        }
+        LoginUserVO loginUserVO = new LoginUserVO();
+        BeanUtils.copyProperties(user, loginUserVO);
+        loginUserVO.setToken(token);
+        return loginUserVO;
+    }
+
+    @Override
+    public boolean isAdmin(String token) {
+        User loginUser = getLoginUser(token);
+        return isAdmin(loginUser);
     }
 }

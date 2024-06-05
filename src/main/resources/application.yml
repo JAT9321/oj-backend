@@ -9,47 +9,42 @@ spring:
     mvc:
         pathmatch:
             matching-strategy: ant_path_matcher
-    # session 配置
-    session:
-        # todo 取消注释开启分布式 session（须先配置 Redis）
-        # store-type: redis
-        # 30 天过期
-        timeout: 2592000000
     # 数据库配置
     # todo 需替换配置
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://121.37.154.99:3007/gtoj?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=no
+        url: jdbc:mysql://121.37.154.99:3007/gtoj?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=no
         username: root
         password: zgt9321@jj.com
-    # Redis 配置
-    # todo 需替换配置，然后取消注释
-    #  redis:
-    #    database: 1
-    #    host: 121.37.154.99
-    #    port: 6379
-    #    timeout: 5000
-    #    password: zgt123
-    # Elasticsearch 配置
-    # todo 需替换配置，然后取消注释
-    #  elasticsearch:
-    #    uris: http://localhost:9200
-    #    username: root
-    #    password: 123456
     # 文件上传
     servlet:
         multipart:
             # 大小限制
             max-file-size: 10MB
+    web:
+        resources:
+            static-locations: classpath:/web/
+#    data:
+#        redis:
+#            host: 121.37.154.99
+#            port: 6379
+#            database: 0
+#            lettuce:
+#                pool:
+#                    enabled: true
+#                    max-active: 100
+#                    max-idle: 20
+#                    min-idle: 5
+#            password: zgt123
+    redis:
+        database: 0
+        host: 121.37.154.99
+        port: 6379
+        timeout: 5000
+        password: zgt123
+
 server:
-    address: 0.0.0.0
     port: 8121
-    servlet:
-        context-path: /api
-        # cookie 30 天过期
-        session:
-            cookie:
-                max-age: 2592000
 mybatis-plus:
     configuration:
         map-underscore-to-camel-case: false

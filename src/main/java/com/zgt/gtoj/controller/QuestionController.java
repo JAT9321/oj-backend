@@ -36,7 +36,7 @@ import java.util.List;
  * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @RestController
-@RequestMapping("/question")
+@RequestMapping("/api/question")
 @Slf4j
 public class QuestionController {
 
@@ -61,7 +61,10 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest,
+                                          // HttpServletRequest request
+                                          @RequestHeader(value = "authorization", defaultValue = "None") String token
+    ) {
         if (questionAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -80,7 +83,7 @@ public class QuestionController {
             question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
         }
         questionService.validQuestion(question, true);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser(token);
         question.setUserId(loginUser.getId());
         question.setFavourNum(0);
         question.setThumbNum(0);
@@ -98,17 +101,20 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteQuestion(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteQuestion(@RequestBody DeleteRequest deleteRequest,
+                                                // HttpServletRequest request
+                                                @RequestHeader(value = "authorization", defaultValue = "None") String token
+    ) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
+        User user = userService.getLoginUser(token);
         long id = deleteRequest.getId();
         // 判断是否存在
         Question oldQuestion = questionService.getById(id);
         ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或管理员可删除
-        if (!oldQuestion.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
+        if (!oldQuestion.getUserId().equals(user.getId()) && !userService.isAdmin(token)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         boolean b = questionService.removeById(id);
@@ -161,7 +167,10 @@ public class QuestionController {
      * @return
      */
     @GetMapping("/get")
-    public BaseResponse<Question> getQuestionById(long id, HttpServletRequest request) {
+    public BaseResponse<Question> getQuestionById(long id,
+                                                  // HttpServletRequest request,
+                                                  @RequestHeader(value = "authorization", defaultValue = "None") String token
+    ) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -171,7 +180,7 @@ public class QuestionController {
         }
 
         // 仅仅让本人或管理员进行查看
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser(token);
         if (!question.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
@@ -240,11 +249,13 @@ public class QuestionController {
      */
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-                                                                 HttpServletRequest request) {
+                                                                 HttpServletRequest request,
+                                                                 @RequestHeader(value = "authorization", defaultValue = "None") String token
+    ) {
         if (questionQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser(token);
         questionQueryRequest.setUserId(loginUser.getId());
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
@@ -266,7 +277,10 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest,
+                                              // HttpServletRequest request
+                                              @RequestHeader(value = "authorization", defaultValue = "None") String token
+    ) {
         if (questionEditRequest == null || questionEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -286,7 +300,7 @@ public class QuestionController {
         }
         // 参数校验
         questionService.validQuestion(question, false);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser(token);
         long id = questionEditRequest.getId();
         // 判断是否存在
         Question oldQuestion = questionService.getById(id);
@@ -305,14 +319,26 @@ public class QuestionController {
      * @param request
      * @return
      */
+    // @PostMapping("/question_submit/do")
+    // public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionsubmitAddRequest,
+    //                                            HttpServletRequest request) {
+    //     if (questionsubmitAddRequest == null || questionsubmitAddRequest.getQuestionId() <= 0) {
+    //         throw new BusinessException(ErrorCode.PARAMS_ERROR);
+    //     }
+    //     // 登录才可以做题
+    //     final User loginUser = userService.getLoginUser(request);
+    //     long questionId = questionsubmitAddRequest.getQuestionId();
+    //     Long result = questionSubmitService.doQuestionSubmit(questionsubmitAddRequest, loginUser);
+    //     return ResultUtils.success(result);
+    // }
     @PostMapping("/question_submit/do")
     public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionsubmitAddRequest,
-                                               HttpServletRequest request) {
+                                               @RequestHeader(value = "authorization", defaultValue = "None") String token) {
         if (questionsubmitAddRequest == null || questionsubmitAddRequest.getQuestionId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 登录才可以做题
-        final User loginUser = userService.getLoginUser(request);
+        final User loginUser = userService.getLoginUser(token);
         long questionId = questionsubmitAddRequest.getQuestionId();
         Long result = questionSubmitService.doQuestionSubmit(questionsubmitAddRequest, loginUser);
         return ResultUtils.success(result);
@@ -327,12 +353,14 @@ public class QuestionController {
     @PostMapping("/question_submit/list/page")
 //    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
-                                                                         HttpServletRequest request) {
+                                                                         // HttpServletRequest request,
+                                                                         @RequestHeader(value = "authorization", defaultValue = "None") String token
+    ) {
         long current = questionSubmitQueryRequest.getCurrent();
         long size = questionSubmitQueryRequest.getPageSize();
         Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
                 questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
-        final User loginUser = userService.getLoginUser(request);
+        final User loginUser = userService.getLoginUser(token);
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
 
