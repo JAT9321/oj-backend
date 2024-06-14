@@ -23,6 +23,8 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.zgt.gtoj.model.enums.JudgeInfoMessageEnum.ACCEPTED;
+
 @Service
 public class JudgeServiceImpl implements JudgeService {
 
@@ -48,7 +50,7 @@ public class JudgeServiceImpl implements JudgeService {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "提交记录不存在");
         }
 
-        //根据题号，获得题目的信息
+        // 根据题号，获得题目的信息
         Long questionId = questionSubmit.getQuestionId();
         Question question = questionService.getById(questionId);
         if (question == null) {
@@ -69,25 +71,25 @@ public class JudgeServiceImpl implements JudgeService {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新异常");
         }
 
-        //调用沙盒，执行代码，获得结果
+        // 调用沙盒，执行代码，获得结果
         CodeSandbox codeSandbox = CodeSandboxFactory.newInstance(type);
         codeSandbox = new CodeSandboxProxy(codeSandbox);
         String language = questionSubmit.getLanguage();
         String code = questionSubmit.getCode();
-        //获得当前题目的输入用例
+        // 获得当前题目的输入用例
         String judgeCase = question.getJudgeCase();
         List<JudgeCase> judgeCaseList = JSONUtil.toList(judgeCase, JudgeCase.class);
-        //只要输入用例，对应的输出用例不用传递给代码沙盒
+        // 只要输入用例，对应的输出用例不用传递给代码沙盒
         List<String> inputList = judgeCaseList.stream().map(JudgeCase::getInput).collect(Collectors.toList());
-        //构造沙盒需要的输入
+        // 构造沙盒需要的输入
         ExecuteCodeRequest executeCodeRequest = ExecuteCodeRequest.builder()
                 .language(language)
                 .code(code)
                 .inputList(inputList)
                 .build();
-        //沙盒执行代码
+        // 沙盒执行代码
         ExecuteCodeResponse executeCodeResponse = codeSandbox.executeCode(executeCodeRequest);
-        //获得执行完输入用例的结果
+        // 获得执行完输入用例的结果
         List<String> executeCodeResponseOutputList = executeCodeResponse.getOutputList();
         // 由沙盒执行的结果和输出用例进行对比，以及内存之类的限制，给定这次提交的判决信息
         JudgeContext judgeContext = new JudgeContext();
@@ -97,7 +99,7 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setJudgeCaseList(judgeCaseList);
         judgeContext.setQuestion(question);
         judgeContext.setQuestionSubmit(questionSubmit);
-        //使用策略模式调用沙盒执行结果的判断，例如结果正确与否以及内存时间的约束是否满足当前语言的要求
+        // 使用策略模式调用沙盒执行结果的判断，例如结果正确与否以及内存时间的约束是否满足当前语言的要求
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
         questionSubmitUpdate = new QuestionSubmit();
         questionSubmitUpdate.setId(questionSubmitId);
@@ -105,9 +107,19 @@ public class JudgeServiceImpl implements JudgeService {
         questionSubmitUpdate.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));
         update = questionSubmitService.updateById(questionSubmitUpdate);
         if (!update) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "提交题目状态更新错误");
         }
-        QuestionSubmit questionSubmitResult = questionSubmitService.getById(questionId);
+        QuestionSubmit questionSubmitResult = questionSubmitService.getById(questionSubmitId);
+        // 更新当前题目的提交数目，以及通过数目
+        Question updateQuestion = new Question();
+        updateQuestion.setId(questionId);
+        updateQuestion.setAcceptedNum(ACCEPTED.getText().equals(judgeInfo.getMessage()) ? question.getAcceptedNum() + 1 : question.getAcceptedNum());
+        updateQuestion.setSubmitNum(question.getSubmitNum() + 1);
+        update = questionService.updateById(updateQuestion);
+        if (!update) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目提交数目更新错误");
+        }
+
         return questionSubmitResult;
     }
 }

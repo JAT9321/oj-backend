@@ -127,11 +127,11 @@ public class UserController {
      * @return
      */
     @PostMapping("/logout")
-    public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
-        if (request == null) {
+    public BaseResponse<Boolean> userLogout(@RequestHeader(value = "authorization", defaultValue = "None") String token) {
+        if (token == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean result = userService.userLogout(request);
+        boolean result = userService.userLogout(token);
         return ResultUtils.success(result);
     }
 

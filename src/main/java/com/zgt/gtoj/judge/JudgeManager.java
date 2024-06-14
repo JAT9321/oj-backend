@@ -1,10 +1,7 @@
 package com.zgt.gtoj.judge;
 
 import com.zgt.gtoj.judge.codesandbox.model.JudgeInfo;
-import com.zgt.gtoj.judge.strategy.DefaultJudgeStrategy;
-import com.zgt.gtoj.judge.strategy.JavaLanguageJudgeStrategy;
-import com.zgt.gtoj.judge.strategy.JudgeContext;
-import com.zgt.gtoj.judge.strategy.JudgeStrategy;
+import com.zgt.gtoj.judge.strategy.*;
 import com.zgt.gtoj.model.entity.QuestionSubmit;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +23,8 @@ public class JudgeManager {
         String language = questionSubmit.getLanguage();
         JudgeStrategy judgeStrategy = new DefaultJudgeStrategy();
         if ("java".equals(language)) {
-            judgeStrategy = new JavaLanguageJudgeStrategy();
+            // judgeStrategy = new JavaLanguageJudgeStrategy();
+            judgeStrategy = new DockerJavaLanguageJudgeStrategy();
         }
         return judgeStrategy.doJudge(judgeContext);
     }

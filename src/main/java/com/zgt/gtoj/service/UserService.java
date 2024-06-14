@@ -91,6 +91,8 @@ public interface UserService extends IService<User> {
      */
     boolean userLogout(HttpServletRequest request);
 
+    boolean userLogout(String token);
+
     /**
      * 获取脱敏的已登录用户信息
      *

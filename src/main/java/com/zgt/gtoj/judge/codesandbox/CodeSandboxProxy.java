@@ -9,16 +9,15 @@ public class CodeSandboxProxy implements CodeSandbox {
 
     private final CodeSandbox codeSandbox;
 
-
     public CodeSandboxProxy(CodeSandbox codeSandbox) {
         this.codeSandbox = codeSandbox;
     }
 
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
-        log.info("代码沙箱请求信息：" + executeCodeRequest.toString());
+        log.info("\n代码沙箱请求信息：" + executeCodeRequest.toString() + "\n");
         ExecuteCodeResponse executeCodeResponse = codeSandbox.executeCode(executeCodeRequest);
-        log.info("代码沙箱响应信息：" + executeCodeResponse.getMessage());
+        log.info("\n代码沙箱响应信息：" + executeCodeResponse.getMessage() + "\n");
         return executeCodeResponse;
     }
 }

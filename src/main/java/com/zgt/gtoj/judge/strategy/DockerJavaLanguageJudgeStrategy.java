@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * Java 程序的判题策略
  */
-public class JavaLanguageJudgeStrategy implements JudgeStrategy {
+public class DockerJavaLanguageJudgeStrategy implements JudgeStrategy {
 
     /**
      * 执行判题

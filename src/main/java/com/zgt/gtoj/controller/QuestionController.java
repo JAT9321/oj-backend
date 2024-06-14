@@ -97,7 +97,6 @@ public class QuestionController {
      * 删除
      *
      * @param deleteRequest
-     * @param request
      * @return
      */
     @PostMapping("/delete")
