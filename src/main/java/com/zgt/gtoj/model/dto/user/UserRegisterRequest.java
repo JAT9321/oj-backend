@@ -1,6 +1,7 @@
 package com.zgt.gtoj.model.dto.user;
 
 import java.io.Serializable;
+
 import lombok.Data;
 
 /**
@@ -19,4 +20,6 @@ public class UserRegisterRequest implements Serializable {
     private String userPassword;
 
     private String checkPassword;
+
+    private String userName;
 }
