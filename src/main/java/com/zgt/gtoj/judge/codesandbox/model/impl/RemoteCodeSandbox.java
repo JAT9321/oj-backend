@@ -39,7 +39,7 @@ public class RemoteCodeSandbox implements CodeSandbox {
         // 上线地址
         // String url = "http://121.37.154.99:2375/execCode";
         // 开发地址
-        String url = "http://121.37.154.99:2376/execCode";
+        String url = "http://121.37.154.99:2375/execCode";
         // String url = "http://localhost:9999/execCode";
         String execReq = JSONUtil.toJsonStr(executeCodeRequest);
         String response = HttpUtil.createPost(url)
