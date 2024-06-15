@@ -113,7 +113,7 @@ public class JudgeServiceImpl implements JudgeService {
         // 更新当前题目的提交数目，以及通过数目
         Question updateQuestion = new Question();
         updateQuestion.setId(questionId);
-        updateQuestion.setAcceptedNum(ACCEPTED.getText().equals(judgeInfo.getMessage()) ? question.getAcceptedNum() + 1 : question.getAcceptedNum());
+        updateQuestion.setAcceptedNum(ACCEPTED.getValue().equals(judgeInfo.getMessage()) ? question.getAcceptedNum() + 1 : question.getAcceptedNum());
         updateQuestion.setSubmitNum(question.getSubmitNum() + 1);
         update = questionService.updateById(updateQuestion);
         if (!update) {
